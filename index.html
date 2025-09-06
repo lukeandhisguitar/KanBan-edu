@@ -214,6 +214,25 @@
         }
         
         #config-modal .modal-content { max-width: 500px; width: 100%; }
+        
+        #save-config-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #save-config-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            filter: brightness(1.1);
+        }
+
         #config-form-fields label { display: inline-flex; align-items: center; gap: 8px; }
         .theme-student .cell { font-weight: 500; }
         .theme-student .cell-name-span { color: #2c3e50; }
@@ -679,7 +698,7 @@
             <h2 style="font-weight: 600;">看板配置</h2>
             <div id="config-form-fields" style="display: flex; flex-direction: column; gap: 1rem; padding: 2rem 1rem;"></div>
             <div class="modal-actions">
-                <button type="button" id="save-config-btn" style="padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 500; cursor: pointer;">保存配置</button>
+                <button type="button" id="save-config-btn" >保存配置</button>
             </div>
         </div>
     </div>
@@ -1036,35 +1055,29 @@
                         id: 1725454800001, studentName: "芳一弦", curriculum: "ALEVEL", discipline: "物理", subject: "A2",
                         school: "苏国外", studentProfile: "目标牛津物理系，需要加强电磁学部分的解题能力。",
                         updatedAt: now.toISOString(), classTime: [ { day: 6, start: "13:00", end: "15:00" } ],
-                        progressLog: [], classDates: [], startDate: "2025-09-01"
+                        progressLog: [
+                            { date: "2025-09-06", duration: 2, content: "复习牛顿运动定律，讲解典型例题。", feedback: "概念掌握牢固，但复杂受力分析仍有困难。", homeworkAssigned: "完成练习册P1-5", homeworkStatus: "待检查" },
+                            { date: "2025-08-30", duration: 2, content: "首次课评估，摸底测试。", feedback: "运动学基础良好，需加强动力学部分。", homeworkAssigned: "预习第一章", homeworkStatus: "已完成" }
+                        ], 
+                        classDates: [], startDate: "2025-08-30"
                     },
                     { 
                         id: 1725454800002, studentName: "王皓轩", curriculum: "ALEVEL", discipline: "数学", subject: "AS",
                         school: "昆城外", studentProfile: "基础较好，但计算容易粗心，需要针对性训练。",
                         updatedAt: now.toISOString(), classTime: [ { day: 3, start: "18:30", end: "20:30" } ],
-                        progressLog: [], classDates: [], startDate: "2025-09-01"
-                    },
-                    { 
-                        id: 1725454800003, studentName: "张景涵,周睿杰", curriculum: "ALEVEL", discipline: "物理", subject: "AS",
-                        school: "德威", studentProfile: "二人进度同步，主攻力学和波。张同学概念理解快，周同学解题思路更灵活。",
-                        updatedAt: now.toISOString(), classTime: [ { day: 4, start: "18:30", end: "20:30" } ],
-                        progressLog: [], classDates: [], startDate: "2025-09-01", endDate: "2025-12-31"
-                    },
-                    { 
-                        id: 1725454800004, studentName: "刘梓萱", curriculum: "AP", discipline: "数学", subject: "第二年",
-                        school: "领科", studentProfile: "AP微积分BC，目标5分。当前进度：参数方程与极坐标。",
-                        updatedAt: now.toISOString(), classTime: [ { day: 0, start: "13:30", end: "15:30" } ],
-                        progressLog: [], classDates: [], startDate: "2025-09-01"
+                        progressLog: [
+                            { date: "2025-09-03", duration: 2, content: "讲解函数定义域与值域求法。", feedback: "方法理解快，但计算过程容易出错。", homeworkAssigned: "完成讲义例题", homeworkStatus: "部分完成" }
+                        ], 
+                        classDates: [], startDate: "2025-09-01"
                     }
                 ],
                 specialDates: {
                     "2025-10-01": "holiday",
-                    "2025-10-02": "holiday",
-                    "2025-10-03": "holiday"
+                    "2025-10-11": "workday"
                 }
             };
         }
-
+        
         function getStudentDefaultWidths() { 
             return { 
                 studentName: '130px',
