@@ -207,6 +207,12 @@
         .theme-student .project-header-row .header-cell[data-key="actions"] { background-color: var(--header-bg); }
         .theme-student .modal { background-color: rgba(44, 62, 80, 0.4); }
         .theme-student .modal-content { background-color: var(--modal-bg); border-radius: 12px; }
+        
+        /* --- 新增：为学生编辑弹窗设置最大宽度，防止过分拉伸 --- */
+        .theme-student #project-modal .modal-content {
+            max-width: 650px;
+        }
+        
         #config-modal .modal-content { max-width: 500px; width: 100%; }
         #config-form-fields label { display: inline-flex; align-items: center; gap: 8px; }
         .theme-student .cell { font-weight: 500; }
