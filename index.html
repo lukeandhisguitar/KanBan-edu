@@ -215,22 +215,53 @@
         
         #config-modal .modal-content { max-width: 500px; width: 100%; }
         
-        #save-config-btn {
+        /* --- 为“保存配置”按钮定义两种主题下的不同样式 --- */
+
+        /* 1. 工作看板 (深色主题)下的“保存配置”按钮：保持实心、有质感的样式 */
+        .theme-work #save-config-btn {
             background-color: var(--primary-color);
-            color: white;
+            color: #ffffff;
             border: none;
-            padding: 10px 24px;
+            padding: 8px 20px;
             border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
+            font-weight: 500;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        #save-config-btn:hover {
+        .theme-work #save-config-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             filter: brightness(1.1);
+        }
+
+        /* 最终版：“幽灵”按钮 v2 - 强调呼吸感和轻盈感 */
+        .theme-student #save-config-btn {
+            background-color: transparent;
+            /* --- 核心改动：进一步降低透明度，更像“幽灵” --- */
+            border: 1px solid rgba(39, 174, 96, 0.3); 
+            color: rgba(39, 174, 96, 0.65);
+            
+            box-shadow: 0 2px 4px rgba(39, 174, 96, 0.35);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.25s ease-in-out;
+            
+            /* --- 核心改动：解决拥挤，营造“呼吸感” --- */
+            font-size: 11px; /* 字体再小一点 */
+            font-weight: 500; /* 字重降低，更显轻盈 */
+            letter-spacing: 0.5px; /* 拉开字符间距 */
+            padding: 6px 20px; /* 垂直变窄，水平变宽，让文字舒展 */
+        }
+
+        /* 悬停时的“扎实”感保持不变 */
+        .theme-student #save-config-btn:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.25);
         }
 
         #config-form-fields label { display: inline-flex; align-items: center; gap: 8px; }
@@ -487,18 +518,18 @@
             gap: 4px;
         }
         .class-entry {
-            position: relative; /* 为拖拽手柄的绝对定位提供基准 */
-            border-left: 4px solid; /* 颜色将由JS内联样式提供 */
+            position: relative;
+            border-left: 4px solid;
             border-radius: 4px;
-            padding: 5px 8px 5px 20px; /* 统一的内边距，左侧为拖拽手柄留出空间 */
+            padding: 5px 8px 5px 20px;
             width: 100%;
             text-align: left;
             box-sizing: border-box;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis;
+            text-overflow: ellipsis; /* 恢复为最简单的版本 */
             line-height: 1.4;
-            cursor: pointer; /* 默认光标为可点击的手型 */
+            cursor: pointer;
             transition: all 0.2s ease-in-out;
         }
         .drag-handle {
@@ -1057,6 +1088,23 @@
 
         function getStudentDefaultData() {
             const now = new Date();
+
+            // --- 新增代码开始：动态生成“今天”和“后天”的日期 ---
+            const today = new Date();
+            const dayAfterTomorrow = new Date();
+            dayAfterTomorrow.setDate(today.getDate() + 2);
+
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const todayKey = formatDate(today);
+            const dayAfterTomorrowKey = formatDate(dayAfterTomorrow);
+            // --- 新增代码结束 ---
+
             return {
                 projects: [
                     { 
@@ -1079,13 +1127,15 @@
                         classDates: [], startDate: "2025-09-01"
                     }
                 ],
+                // --- 核心改动：使用动态生成的日期作为键 ---
                 specialDates: {
-                    "2025-10-01": "holiday",
-                    "2025-10-11": "workday"
+                    [todayKey]: "holiday",
+                    [dayAfterTomorrowKey]: "workday"
                 }
             };
         }
-                
+
+        
         function getStudentDefaultWidths() { 
             return { 
                 studentName: '130px',
@@ -1646,7 +1696,7 @@
             let totalClasses = 0;
             const monthScheduleData = {};
 
-            // 1. 数据处理：收集课程时，额外加入 discipline 和 subject(grade)
+            // 1. 数据处理
             data.projects.forEach(student => {
                 if (Array.isArray(student.classTime)) {
                     student.classTime.forEach(time => {
@@ -1663,12 +1713,9 @@
                                     const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                                     if (!monthScheduleData[dateKey]) monthScheduleData[dateKey] = [];
                                     monthScheduleData[dateKey].push({ 
-                                        studentId: student.id, 
-                                        studentName: student.studentName, 
-                                        start: time.start, 
-                                        end: time.end, 
-                                        discipline: student.discipline, 
-                                        grade: student.subject // 将 subject 作为 grade 传递
+                                        studentId: student.id, studentName: student.studentName, 
+                                        start: time.start, end: time.end, 
+                                        discipline: student.discipline, grade: student.subject
                                     });
                                 }
                             }
@@ -1681,11 +1728,9 @@
             const grid = document.createElement('div');
             grid.className = 'monthly-schedule-grid';
             
-            // --- 核心改动开始：检查“标记”按钮是否处于激活状态，如果是，则在重新渲染后保持标记模式 ---
             if (document.getElementById('mark-dates-btn').classList.contains('active')) {
                 grid.classList.add('marking-mode');
             }
-            // --- 核心改动结束 ---
 
             const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
             dayNames.forEach(day => grid.innerHTML += `<div class="day-header">${day}</div>`);
@@ -1698,7 +1743,6 @@
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 
-                // 2.1 收集并整合当天所有课程
                 const dailyClassMap = new Map();
                 (monthScheduleData[dateKey] || []).forEach(c => {
                     const eventKey = `${dateKey}_${c.start}`;
@@ -1711,7 +1755,7 @@
                                 dailyClassMap.set(override.key, {
                                     studentId: student.id, studentName: student.studentName,
                                     start: override.newStart, end: override.newEnd,
-                                    discipline: student.discipline, grade: student.subject, // 确保 override 课程也有学科和年级
+                                    discipline: student.discipline, grade: student.subject,
                                     isOverride: true, originalStart: override.key.split('_')[1]
                                 });
                             }
@@ -1719,7 +1763,6 @@
                     }
                 });
 
-                // 2.2 过滤、排序、渲染
                 let finalClasses = Array.from(dailyClassMap.values()).filter(c => {
                     const student = data.projects.find(p => p.id === c.studentId);
                     const eventKey = `${dateKey}_${c.isOverride ? c.originalStart : c.start}`;
@@ -1735,9 +1778,17 @@
 
                 finalClasses.forEach(c => {
                     totalClasses++;
-                    const colors = getClassColor(c.discipline, c.grade); // 核心改动
+                    const colors = getClassColor(c.discipline, c.grade);
                     const styleAttribute = `style="background-color: ${colors.background}; border-left-color: ${colors.border}; color: ${colors.text};"`;
-                    cellHTML += `<div class="class-entry" ${styleAttribute} data-student-id="${c.studentId}" data-date-key="${dateKey}" data-start-time="${c.isOverride ? c.originalStart : c.start}" title="${c.start}-${c.end} ${c.studentName}"><div class="drag-handle"></div><span class="class-entry-time">${c.start} - ${c.end}</span><span>${c.studentName}</span></div>`;
+                    
+                    // --- 核心改动：无论名字多长，只显示前三个字 ---
+                    let displayName = c.studentName;
+                    if (displayName.length > 3) {
+                        displayName = displayName.substring(0, 3) + '...';
+                    }
+                    
+                    // 鼠标悬停的title依然显示全名，显示的名字(displayName)是截断后的
+                    cellHTML += `<div class="class-entry" ${styleAttribute} data-student-id="${c.studentId}" data-date-key="${dateKey}" data-start-time="${c.isOverride ? c.originalStart : c.start}" title="${c.start}-${c.end} ${c.studentName}"><div class="drag-handle"></div><span class="class-entry-time">${c.start} - ${c.end}</span><span class="student-name">${displayName}</span></div>`;
                 });
                 cellHTML += `</div></div>`;
                 grid.innerHTML += cellHTML;
@@ -2136,14 +2187,21 @@
                 renderMonthlySchedule();
             });
 
-            //2. 月表中课程条目mousedown统一处理器
-            gridContainer.addEventListener('mousedown', (e) => {
+//2. 月表中课程条目mousedown统一处理器 (v2, 结构加固版)
+gridContainer.addEventListener('mousedown', (e) => {
                 const classEntry = e.target.closest('.class-entry');
                 if (!classEntry) {
                     if (activeTimeEditor) removeTimeEditor(true);
                     return;
                 }
+
+                // --- 修复一：当处于“标记模式”时，禁止对课程条目进行任何操作 ---
+                const grid = gridContainer.querySelector('.monthly-schedule-grid');
+                if (grid && grid.classList.contains('marking-mode')) {
+                    return; // 直接退出，不响应任何课程条目的点击
+                }
                 
+                // 拖拽手柄的逻辑保持不变
                 if (e.target.classList.contains('drag-handle')) {
                     if (e.button === 0) { classEntry.draggable = true; }
                     return;
@@ -2154,6 +2212,7 @@
                 if (!student) return;
                 const eventKey = `${dateKey}_${startTime}`;
 
+                // --- 修复二：使用 if...else if 结构，确保左键和中键功能绝对互斥 ---
                 if (e.button === 0) { // 左键: 编辑时间
                     if (activeTimeEditor) { removeTimeEditor(true); return; }
                     const currentTimeText = classEntry.querySelector('.class-entry-time').textContent;
@@ -2187,9 +2246,8 @@
                         else if (keyEvent.key === 'Escape') { keyEvent.preventDefault(); removeTimeEditor(false); }
                     });
                     setTimeout(() => document.addEventListener('mousedown', handleOutsideClick, true), 0);
-                }
-
-                if (e.button === 1) { // 中键: 隐藏/删除
+                
+                } else if (e.button === 1) { // 中键: 隐藏/删除
                     e.preventDefault();
                     if (!Array.isArray(student.inactiveClasses)) student.inactiveClasses = [];
                     if (student.inactiveClasses.includes(eventKey)) return;
@@ -2200,7 +2258,7 @@
                     showToast('课程已隐藏', undoLastAction);
                 }
             });
-            
+
             //3. 拖拽生命周期时间
             gridContainer.addEventListener('dragstart', (e) => {
                 const classEntry = e.target.closest('.class-entry');
