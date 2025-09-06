@@ -518,25 +518,26 @@
             gap: 4px;
         }
         .class-entry {
-            position: relative;
             border-left: 4px solid;
             border-radius: 4px;
-            padding: 5px 8px 5px 20px;
+            padding: 5px 8px;
             width: 100%;
             text-align: left;
             box-sizing: border-box;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis; /* 恢复为最简单的版本 */
             line-height: 1.4;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+        }
+        
+        .class-entry-content-wrapper {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .drag-handle {
-            position: absolute;
-            left: 4px;
-            top: 50%;
-            transform: translateY(-50%);
             width: 10px;
             height: 16px;
             cursor: grab;
@@ -545,7 +546,10 @@
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="12" viewBox="0 0 6 12"><circle cx="2" cy="2" r="1.5" fill="%23555" /><circle cx="2" cy="6" r="1.5" fill="%23555" /><circle cx="2" cy="10" r="1.5" fill="%23555" /></svg>');
             background-repeat: no-repeat;
             background-position: center;
+            flex-shrink: 0;
+            margin-right: 6px;
         }
+
         .class-entry:hover .drag-handle {
             opacity: 0.8;
         }
@@ -1788,8 +1792,7 @@
                     }
                     
                     // 鼠标悬停的title依然显示全名，显示的名字(displayName)是截断后的
-                    cellHTML += `<div class="class-entry" ${styleAttribute} data-student-id="${c.studentId}" data-date-key="${dateKey}" data-start-time="${c.isOverride ? c.originalStart : c.start}" title="${c.start}-${c.end} ${c.studentName}"><div class="drag-handle"></div><span class="class-entry-time">${c.start} - ${c.end}</span><span class="student-name">${displayName}</span></div>`;
-                });
+                    cellHTML += `<div class="class-entry" ${styleAttribute} data-student-id="${c.studentId}" data-date-key="${dateKey}" data-start-time="${c.isOverride ? c.originalStart : c.start}"><div class="drag-handle"></div><div class="class-entry-content-wrapper" title="${c.start}-${c.end} ${c.studentName}"><span class="class-entry-time">${c.start} - ${c.end}</span><span class="student-name">${displayName}</span></div></div>`;                });
                 cellHTML += `</div></div>`;
                 grid.innerHTML += cellHTML;
             }
@@ -2187,8 +2190,8 @@
                 renderMonthlySchedule();
             });
 
-//2. 月表中课程条目mousedown统一处理器 (v2, 结构加固版)
-gridContainer.addEventListener('mousedown', (e) => {
+            //2. 月表中课程条目mousedown统一处理器 (v2, 结构加固版)
+            gridContainer.addEventListener('mousedown', (e) => {
                 const classEntry = e.target.closest('.class-entry');
                 if (!classEntry) {
                     if (activeTimeEditor) removeTimeEditor(true);
@@ -2207,7 +2210,14 @@ gridContainer.addEventListener('mousedown', (e) => {
                     return;
                 }
 
+                // 新增检查：确保只有点击内容区才会触发后续事件
+                const contentWrapper = e.target.closest('.class-entry-content-wrapper');
+                if (!contentWrapper) {
+                    return; // 若点击的不是内容区（如边框、手柄左侧空白），则不执行任何操作
+                }
+
                 const { studentId, dateKey, startTime } = classEntry.dataset;
+
                 const student = data.projects.find(p => p.id == studentId);
                 if (!student) return;
                 const eventKey = `${dateKey}_${startTime}`;
