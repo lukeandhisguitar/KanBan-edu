@@ -766,35 +766,43 @@
     </div>    
     <div id="toast-container"></div>
     <div id="instructions-modal" class="modal">
+        
         <div class="modal-content" style="max-width: 800px; width: 90%;">
             <h2 style="text-align: center; font-weight: 600; margin-top: 0; margin-bottom: 2rem;">教学看板使用说明</h2>
             <div id="instructions-content" style="line-height: 1.8; max-height: 70vh; overflow-y: auto; padding-right: 1rem;">
                 <p>欢迎使用教学看板！这是一个专为您进行个性化教学管理而设计的本地化工具。您的所有数据都安全地存储在您自己的浏览器中，不会上传到任何服务器。</p>
-                <h3 style="font-weight: 600; margin-top: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">一、 主界面核心功能</h3>
-                <ul style="padding-left: 20px;">
+                
+                <h3 style="font-weight: 600; margin-top: 2rem;">一、 主界面核心功能</h3>
+                <ul style="padding-left: 20px; margin-bottom: 0;">
                     <li><strong>学生列表</strong>：主界面以表格形式展示您所有的学生记录。</li>
-                    <li><strong>拖拽排序</strong>：按住每行最左侧的<strong>序号</strong>单元格，上下拖动，即可调整学生记录的显示顺序。</li>
+                    <li><strong>拖拽排序</strong>：<strong>长按</strong>每行最左侧的<strong>序号</strong>单元格，上下拖动，即可调整学生记录的显示顺序。</li>
                     <li><strong>行内编辑</strong>：单击表格中的大部分字段（如学生姓名、年级、学校等），即可直接在表格内进行修改。修改后按 <code>Enter</code> 保存，按 <code>Esc</code> 取消。</li>
                     <li><strong>添加/编辑学生</strong>：点击左下角的“<strong>+ 新增学生</strong>”按钮来创建新学生；点击每行最右侧的“<strong>•••</strong>”按钮来编辑详细信息。</li>
                 </ul>
-                <h3 style="font-weight: 600; margin-top: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">二、 学生专属功能模块</h3>
+                <div style="border-bottom: 1px solid var(--border-color); margin-top: 2rem;"></div>
+
+                <h3 style="font-weight: 600; margin-top: 2rem;">二、 学生专属功能模块</h3>
                 <p>在主看板的每一行，都有两个重要的功能入口：</p>
-                <ul style="padding-left: 20px;">
+                <ul style="padding-left: 20px; margin-bottom: 0;">
                     <li><strong>教学进度 (💬)</strong>：点击可打开该学生的专属教学日志，支持新增、查看和修改。</li>
                     <li><strong>上课日历 (🗓️)</strong>：点击可打开个人日历，用于手动标记<strong>实际已上</strong>的课程。</li>
                 </ul>
-                <h3 style="font-weight: 600; margin-top: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">三、 全局教学月历 (核心功能)</h3>
+                <div style="border-bottom: 1px solid var(--border-color); margin-top: 2rem;"></div>
+
+                <h3 style="font-weight: 600; margin-top: 2rem;">三、 全局教学月历 (核心功能)</h3>
                 <p>点击页面右上角的“<strong>生成月表</strong>”按钮，可以打开汇总了所有学生周期性课程的全局月历。</p>
-                <ul style="padding-left: 20px;">
-                    <li><strong>查看课时</strong>：左上角的圆形数字代表当前月份的总计划课时数。</li>
-                    <li><strong>修改时间 (左键单击)</strong>：<strong>单击</strong>任意课程，会弹出时间编辑器。在编辑器中，鼠标<strong>滚轮</strong>可快速调整时间。</li>
-                    <li><strong>移动课程 (拖拽手柄)</strong>：鼠标悬停在课程上，按住其最左侧浮现的 <strong>⠿</strong> 图标并拖动，可将课程移动到新日期。</li>
-                    <li><strong>隐藏课程 (中键单击)</strong>：用<strong>鼠标中键</strong>（滚轮）单击任意课程，可将其隐藏。</li>
-                    <li><strong>撤销操作</strong>：隐藏课程后，右下角会弹出带【撤销】按钮的提示。您也可以随时使用键盘 <code>Ctrl+Z</code> (Mac为 <code>Cmd+Z</code>) 来撤销。</li>
+                <ul style="padding-left: 20px; margin-bottom: 0;">
+                    <li><strong>查看课时</strong>：左上角的数字代表当前月份的总课时数。</li>
+                    <li><strong>修改时间 | 左键单击</strong>：<strong>单击</strong>任意课程，会弹出时间编辑器。在编辑器中，用鼠标<strong>滚轮</strong>可快速调整时间。</li>
+                    <li><strong>移动课程 | 拖拽手柄</strong>：鼠标悬停在课程上，<strong>按住</strong>其最左侧浮现的 <strong>⠿</strong> 图标并拖动，可将课程移动到新日期。</li>
+                    <li><strong>隐藏课程 | 中键单击</strong>：用<strong>鼠标中键</strong>（滚轮）单击任意课程，可将其隐藏。</li>
+                    <li><strong>撤销操作</strong>：隐藏课程后，右下角会弹出带【撤销】按钮的提示。您也可以随时使用键盘 <code>Ctrl+Z</code> 来撤销。</li>
                     <li><strong>标记假日/工作日</strong>：点击月历右上角的“<strong>标记</strong>”按钮进入标记模式，然后单击日期即可在“常规”→“假日”(黄)→“特殊工作日”(绿)三种状态间切换。</li>
                 </ul>
-                 <h3 style="font-weight: 600; margin-top: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">四、 数据管理</h3>
-                 <p>利用右上角的“看板配置”、“备份数据”、“恢复数据”按钮，可以管理看板的显示列和进行数据安全备份。</p>
+                <div style="border-bottom: 1px solid var(--border-color); margin-top: 2rem;"></div>
+
+                 <h3 style="font-weight: 600; margin-top: 2rem;">四、 数据管理</h3>
+                 <p>利用右上角的【看板配置】、【备份数据】、【恢复数据】按钮，可以管理看板的显示列和进行数据安全备份。</p>
             </div>
         </div>
     </div>
@@ -1645,6 +1653,13 @@
             // 2. 渲染UI
             const grid = document.createElement('div');
             grid.className = 'monthly-schedule-grid';
+            
+            // --- 核心改动开始：检查“标记”按钮是否处于激活状态，如果是，则在重新渲染后保持标记模式 ---
+            if (document.getElementById('mark-dates-btn').classList.contains('active')) {
+                grid.classList.add('marking-mode');
+            }
+            // --- 核心改动结束 ---
+
             const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
             dayNames.forEach(day => grid.innerHTML += `<div class="day-header">${day}</div>`);
             const firstDayOfMonth = new Date(year, month, 1);
