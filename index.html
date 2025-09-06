@@ -114,7 +114,19 @@
         .add-project-btn { padding: 0.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; }
         .inline-editor { position: absolute; top: 2px; left: 2px; right: 2px; bottom: 2px; z-index: 10; }
         .inline-editor input, .inline-editor select { width: 100%; height: 100%; border-radius: 3px; font-size: 14px; box-sizing: border-box; }
-         
+
+        /* 新增：拖拽排序相关样式 */
+        .project-row.dragging {
+            opacity: 0.5;
+            background: var(--hover-bg);
+        }
+        .drag-over {
+            border-top: 2px solid var(--primary-color);
+        }
+        .seq-cell { /* 为序号单元格增加可拖拽的光标 */
+            cursor: move;
+        }
+
         /* ============================================= */
         /* =========== 主题一: 深空商务 (工作) =========== */
         /* ============================================= */
@@ -209,7 +221,18 @@
         .theme-student .pill[data-value="物理"] { background-color: #fdedec; color: #c0392b; border-color: #f5b7b1; }
         .theme-student .pill[data-value="化学"] { background-color: #ebf5fb; color: #2471a3; border-color: #aed6f1; }
         .theme-student .pill[data-value="经济"] { background-color: #f6eefc; color: #7d3c98; border-color: #dcbbf4; }
-        .theme-student #project-form-fields input, .theme-student #project-form-fields select, .theme-student #project-form-fields textarea { border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem;}
+
+        .theme-student #project-form-fields input, .theme-student #project-form-fields select, .theme-student #project-form-fields textarea {
+            /* 新增下面这两行 */
+            box-sizing: border-box; /* 关键：确保 padding 和 border 不会撑大盒子 */
+            height: 44px;           /* 关键：强制所有输入框高度统一 */
+
+            /* 以下是原有样式，保持不变 */
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+
         .theme-student .add-project-btn { color: #34495e; font-weight: 500;}
         .theme-student .add-project-btn:hover { background-color: #eaf3f0; color: #16a085; }
         .theme-student .inline-editor input, .theme-student .inline-editor select { font-family: 'Noto Sans SC', sans-serif; border: 2px solid var(--primary-color);}
@@ -275,7 +298,7 @@
         }
         .theme-student .progress-log-entry:hover .delete-log-btn { opacity: 1; }
         .theme-student .delete-log-btn:hover { background-color: #e74c3c; color: white; transform: scale(1.1); }
-        .theme-student .log-inline-editor { position: absolute; top: 0; left: 0; z-index: 10; }
+        .theme-student .log-inline-editor { position: absolute; top: 0; left: 0; z-index: 1010; }
         .theme-student .log-inline-editor input, 
         .theme-student .log-inline-editor select, 
         .theme-student .log-inline-editor textarea {
@@ -302,7 +325,11 @@
             cursor: default;
         }
 
-        /* 日历弹窗样式 */
+/* ============================================= */
+        /* =========== 日历相关样式 (最终修正版) ======== */
+        /* ============================================= */
+
+        /* --- 学生个人上课日历 (#calendar-modal) --- */
         #calendar-modal .modal-content { max-width: 500px; }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .calendar-header h2 { margin: 0; font-size: 1.2rem; font-weight: 600; color: #34495e;}
@@ -310,17 +337,255 @@
         .calendar-header button:hover { background-color: #ecf0f1; }
         #edit-schedule-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
         #calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .day-header, .day-cell { padding: 0.5rem; border-radius: 8px; }
-        .day-header { font-weight: 600; color: #95a5a6; font-size: 13px; }
-        .day-cell { color: #7f8c8d; }
-        .current-month-day { color: var(--text-color); }
-        .day-cell.taught { background-color: #a3d9b8; color: #1e8449; font-weight: bold; }
+        #calendar-grid .day-header, #calendar-grid .day-cell { padding: 0.5rem; border-radius: 8px; }
+        #calendar-grid .day-header { font-weight: 600; color: #95a5a6; font-size: 13px; }
+        #calendar-grid .day-cell { color: #7f8c8d; }
+        #calendar-grid .current-month-day { color: var(--text-color); }
+        #calendar-grid .day-cell.taught { background-color: #a3d9b8; color: #1e8449; font-weight: bold; }
         #calendar-modal.calendar-editing .current-month-day { cursor: pointer; }
         #calendar-modal.calendar-editing .current-month-day:hover { background-color: #eafaf1; }
 
-/* --- 新增：为“新增/编辑学生”弹窗设置最大宽度 --- */
-        .theme-student #project-modal .modal-content {
-            max-width: 800px;
+        /* --- 教师月表 (#schedule-modal) --- */
+        .theme-student #weekly-schedule-btn { background-color: #1abc9c; }
+        .theme-student #schedule-modal .modal-content {
+            max-width: 90vw;
+            width: 1200px;
+            padding: 2rem 2.5rem;
+        }
+        #schedule-modal-header {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0 0.5rem;
+        }
+        #schedule-class-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            background-color: #eafaf1;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #a3d9b8;
+        }
+        #schedule-modal-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+        #schedule-controls button {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        #schedule-controls button:hover {
+            background-color: #ecf0f1;
+            border-color: #bdc3c7;
+        }
+
+        #mark-dates-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .monthly-schedule-grid.marking-mode .day-cell.not-current-month {
+            cursor: not-allowed;
+        }
+        .monthly-schedule-grid.marking-mode .day-cell {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .monthly-schedule-grid.marking-mode .day-cell:hover {
+            background-color: #f0f5f3;
+        }
+        .monthly-schedule-grid .day-cell.holiday {
+            background-color: #fef5e7; /* 淡黄色背景表示假日 */
+        }
+        .monthly-schedule-grid .day-cell.special-workday {
+            background-color: #eafaf1; /* 淡绿色背景表示特殊工作日 */
+        }
+        
+
+        .monthly-schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-top: 1px solid var(--border-color);
+            border-left: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .monthly-schedule-grid .day-header, .monthly-schedule-grid .day-cell {
+            padding: 8px;
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .monthly-schedule-grid .day-header {
+            font-weight: 600;
+            text-align: center;
+            background-color: var(--header-bg);
+            color: #34495e;
+        }
+        .monthly-schedule-grid .day-cell {
+            min-height: 120px;
+            background-color: #fdfdfd;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+        .monthly-schedule-grid .day-cell.not-current-month { background-color: #f9fafb; color: #bdc3c7; }
+        .monthly-schedule-grid .day-number {
+            font-weight: 600;
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+        }
+        .monthly-schedule-grid .day-cell.not-current-month .day-number { color: #dce4e1; }
+        .class-entries-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .class-entry {
+            position: relative; /* 为拖拽手柄的绝对定位提供基准 */
+            border-left: 4px solid; /* 颜色将由JS内联样式提供 */
+            border-radius: 4px;
+            padding: 5px 8px 5px 20px; /* 统一的内边距，左侧为拖拽手柄留出空间 */
+            width: 100%;
+            text-align: left;
+            box-sizing: border-box;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+            cursor: pointer; /* 默认光标为可点击的手型 */
+            transition: all 0.2s ease-in-out;
+        }
+        .drag-handle {
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 16px;
+            cursor: grab;
+            opacity: 0.2;
+            transition: opacity 0.2s;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="12" viewBox="0 0 6 12"><circle cx="2" cy="2" r="1.5" fill="%23555" /><circle cx="2" cy="6" r="1.5" fill="%23555" /><circle cx="2" cy="10" r="1.5" fill="%23555" /></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .class-entry:hover .drag-handle {
+            opacity: 0.8;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        
+        .class-entry.inactive {
+            background-color: #f1f2f6 !important; /* Use !important to override inline style */
+            border-left: none;
+            padding-left: 12px;
+            color: #a4b0be !important; /* Use !important to override inline style */
+            text-decoration: line-through;
+        }
+        .class-entry-time {
+            font-weight: 700;
+            font-size: 13px;
+            margin-right: 5px;
+        }
+        .student-name {
+            font-weight: 500;
+            font-size: 12px;
+            padding-left: 2px;
+        }
+        
+        /* --- 撤销提示条 (Toast) 与 时间编辑器 --- */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: toast-in 0.5s forwards;
+        }
+        @keyframes toast-in { to { opacity: 1; transform: translateY(0); } }
+        .toast-undo-btn {
+            background: none;
+            border: none;
+            color: #3498db;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 14px;
+        }
+        .time-editor {
+            position: absolute;
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 6px;
+            padding: 8px;
+            z-index: 1010;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .time-editor input[type="time"] {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px;
+            font-size: 13px;
+            width: 90px;
+        }
+
+
+
+/* --- 新增：页脚版本与时间信息样式 --- */
+        #info-footer {
+            /* 默认颜色，适用于亮色主题 */
+            color: #6b7280;
+            z-index: 999;
+        }
+        #time-line {
+            color: #9ca3af;
+        }
+        /* 在深色主题下自动反转颜色 */
+        .theme-work #info-footer {
+            color: #9ca3af;
+        }
+        .theme-work #time-line {
+            color: #6b7280;
         }
 
     </style>
@@ -340,7 +605,11 @@
                 </a>
                 <a class="nav-item" id="nav-student">
                     <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                    <span>学生看板</span>
+                    <span>教育看板</span>
+                </a>
+                <a class="nav-item" id="instructions-btn" style="margin-top: 2rem;">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span>使用说明</span>
                 </a>
             </nav>
         </div>
@@ -366,6 +635,12 @@
                         <span class="btn-text">恢复数据</span>
                         <span class="btn-icon">
                             <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM12 2l6.67 7h-3.58v6h-6.18V9H5.33L12 2z" transform="rotate(180 12 12)"></path></svg>
+                        </span>
+                    </button>
+                    <button class="header-btn" id="weekly-schedule-btn" style="display: none;"> 
+                        <span class="btn-text">生成月表</span>
+                        <span class="btn-icon">
+                            <svg style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M7 14h.01"></path><path d="M12 14h.01"></path><path d="M17 14h.01"></path><path d="M7 18h.01"></path><path d="M12 18h.01"></path><path d="M17 18h.01"></path></svg>
                         </span>
                     </button>
                 </div>
@@ -464,18 +739,110 @@
             <div id="calendar-grid"></div>
         </div>
     </div>
+
+    <div id="calendar-modal" class="modal">
+        {...}
+    </div>
     
+    <div id="schedule-modal" class="modal">
+        <div class="modal-content">
+            <div id="schedule-modal-header">
+                <div id="schedule-class-count"></div>
+                <h2 id="schedule-modal-title"></h2>
+                <div id="schedule-controls">
+                    <button id="mark-dates-btn">标记</button>
+                    <button id="schedule-prev-month-btn">◀</button>
+                    <button id="schedule-next-month-btn">▶</button>
+                </div>
+            </div>
+            <div id="schedule-grid-container">
+                </div>
+        </div>
+    </div>
+
+    <div id="info-footer" style="position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 999; text-align: center;">
+        <div id="version-line" style="font-size: 12px; margin-bottom: 6px;"></div>
+        <div id="time-line" style="font-size: 11px;"></div>
+    </div>    
+    <div id="toast-container"></div>
+    <div id="instructions-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px; width: 90%;">
+            <h2 style="text-align: center; font-weight: 600; margin-top: 0; margin-bottom: 2rem;">教学看板使用说明</h2>
+            <div id="instructions-content" style="line-height: 1.8; max-height: 70vh; overflow-y: auto; padding-right: 1rem;">
+                <p>欢迎使用教学看板！这是一个专为您进行个性化教学管理而设计的本地化工具。您的所有数据都安全地存储在您自己的浏览器中，不会上传到任何服务器。</p>
+                <h3 style="font-weight: 600; margin-top: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">一、 主界面核心功能</h3>
+                <ul style="padding-left: 20px;">
+                    <li><strong>学生列表</strong>：主界面以表格形式展示您所有的学生记录。</li>
+                    <li><strong>拖拽排序</strong>：按住每行最左侧的<strong>序号</strong>单元格，上下拖动，即可调整学生记录的显示顺序。</li>
+                    <li><strong>行内编辑</strong>：单击表格中的大部分字段（如学生姓名、年级、学校等），即可直接在表格内进行修改。修改后按 <code>Enter</code> 保存，按 <code>Esc</code> 取消。</li>
+                    <li><strong>添加/编辑学生</strong>：点击左下角的“<strong>+ 新增学生</strong>”按钮来创建新学生；点击每行最右侧的“<strong>•••</strong>”按钮来编辑详细信息。</li>
+                </ul>
+                <h3 style="font-weight: 600; margin-top: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">二、 学生专属功能模块</h3>
+                <p>在主看板的每一行，都有两个重要的功能入口：</p>
+                <ul style="padding-left: 20px;">
+                    <li><strong>教学进度 (💬)</strong>：点击可打开该学生的专属教学日志，支持新增、查看和修改。</li>
+                    <li><strong>上课日历 (🗓️)</strong>：点击可打开个人日历，用于手动标记<strong>实际已上</strong>的课程。</li>
+                </ul>
+                <h3 style="font-weight: 600; margin-top: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">三、 全局教学月历 (核心功能)</h3>
+                <p>点击页面右上角的“<strong>生成月表</strong>”按钮，可以打开汇总了所有学生周期性课程的全局月历。</p>
+                <ul style="padding-left: 20px;">
+                    <li><strong>查看课时</strong>：左上角的圆形数字代表当前月份的总计划课时数。</li>
+                    <li><strong>修改时间 (左键单击)</strong>：<strong>单击</strong>任意课程，会弹出时间编辑器。在编辑器中，鼠标<strong>滚轮</strong>可快速调整时间。</li>
+                    <li><strong>移动课程 (拖拽手柄)</strong>：鼠标悬停在课程上，按住其最左侧浮现的 <strong>⠿</strong> 图标并拖动，可将课程移动到新日期。</li>
+                    <li><strong>隐藏课程 (中键单击)</strong>：用<strong>鼠标中键</strong>（滚轮）单击任意课程，可将其隐藏。</li>
+                    <li><strong>撤销操作</strong>：隐藏课程后，右下角会弹出带【撤销】按钮的提示。您也可以随时使用键盘 <code>Ctrl+Z</code> (Mac为 <code>Cmd+Z</code>) 来撤销。</li>
+                    <li><strong>标记假日/工作日</strong>：点击月历右上角的“<strong>标记</strong>”按钮进入标记模式，然后单击日期即可在“常规”→“假日”(黄)→“特殊工作日”(绿)三种状态间切换。</li>
+                </ul>
+                 <h3 style="font-weight: 600; margin-top: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">四、 数据管理</h3>
+                 <p>利用右上角的“看板配置”、“备份数据”、“恢复数据”按钮，可以管理看板的显示列和进行数据安全备份。</p>
+            </div>
+        </div>
+    </div>
     <script>
+    
     (() => {
         // =============================================
         // =========== 状态管理与数据定义 ===========
         // =============================================
+
+        function displayVersionAndTime() {
+            // 1. 版本信息 (可在此手动修改)
+            const versionInfo = {
+                version: "教学看板 v1.1.2",
+                last_updated: "[2025-09-04]"
+            };
+            const versionLine = document.getElementById('version-line');
+            if (versionLine) {
+                versionLine.innerHTML = `${versionInfo.version} &nbsp; ${versionInfo.last_updated}`;
+            }
+
+            // 2. 动态本地时钟
+            const timeLine = document.getElementById('time-line');
+            function updateClock() {
+                if (!timeLine) return;
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth() + 1;
+                const day = now.getDate();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const timezoneOffset = -now.getTimezoneOffset() / 60;
+                const timezoneSign = timezoneOffset >= 0 ? '+' : '-';
+                const timezoneStr = `UTC${timezoneSign}${Math.abs(timezoneOffset)}`;
+                const timestamp = `${year}/${month}/${day} ${hours}:${minutes}`;
+                timeLine.textContent = `${timestamp} ${timezoneStr}`;
+            }
+            updateClock();
+            setInterval(updateClock, 60000);
+        }
+        
         let currentView = '';
         let data, columnConfig, columnWidths;
         let isEditing = false;
         let currentCalendarDate = new Date();
         let currentCalendarProjectId = null;
-
+        let currentScheduleDate = new Date();
+        
         const workIcons = {
             name: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="header-icon-svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
             property: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="header-icon-svg"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>`,
@@ -502,7 +869,10 @@
         const configModal = document.getElementById('config-modal');
         const progressModal = document.getElementById('progress-modal');
         const calendarModal = document.getElementById('calendar-modal');
-         
+        const scheduleModal = document.getElementById('schedule-modal');
+        const instructionsModal = document.getElementById('instructions-modal')      
+        
+        
         // =============================================
         // =========== 主控制与切换逻辑 ===========
         // =============================================
@@ -519,6 +889,14 @@
             const isWork = view === 'work';
             document.getElementById('main-title').textContent = isWork ? '项目管理' : '教学进度';
             document.getElementById('add-btn').textContent = isWork ? '+ 新项目' : '+ 新增学生';
+
+            const scheduleBtn = document.getElementById('weekly-schedule-btn');
+            if (isWork) {
+                scheduleBtn.style.display = 'none';
+            } else {
+                scheduleBtn.style.display = 'inline-flex';
+            }
+
             const primaryColor = getComputedStyle(document.body).getPropertyValue('--primary-color');
             const textColor = getComputedStyle(document.body).getPropertyValue('--pill-text-color');
             const deleteColor = currentView === 'work' ? '#991b1b' : '#e74c3c';
@@ -586,8 +964,17 @@
             const dataJSON = localStorage.getItem(getStorageKey('data'));
             const defaultData = currentView === 'work' ? getWorkDefaultData() : getStudentDefaultData();
             if (dataJSON) {
-                try { data = JSON.parse(dataJSON); } catch (e) { data = defaultData; }
-            } else { data = defaultData; }
+                try { 
+                    data = JSON.parse(dataJSON); 
+                    if (!data.specialDates) data.specialDates = {}; // 确保 specialDates 存在
+                } catch (e) { 
+                    data = defaultData; 
+                    data.specialDates = {};
+                }
+            } else { 
+                data = defaultData; 
+                data.specialDates = {};
+            }
         }
         function saveData() { localStorage.setItem(getStorageKey('data'), JSON.stringify(data)); }
 
@@ -617,7 +1004,7 @@
                 { key: 'studentName', shortLabel: '学生姓名', label: `${studentIcons.name} 学生姓名`, type: 'text', visible: true }, 
                 { key: 'curriculum', shortLabel: '国际课程', label: `${studentIcons.curriculum} 国际课程`, type: 'select', options: ['ALEVEL', 'AP', 'IB', 'IGCSE'], visible: true }, 
                 { key: 'discipline', shortLabel: '学科', label: `${studentIcons.discipline} 学科`, type: 'select', options: ['数学', '物理', '化学', '经济'], visible: true }, 
-                { key: 'subject', shortLabel: '科目', label: `${studentIcons.subject} 科目`, type: 'text', visible: true }, 
+                { key: 'subject', shortLabel: '年级', label: `${studentIcons.subject} 年级`, type: 'text', visible: true }, 
                 { key: 'school', shortLabel: '学校', label: `${studentIcons.school} 学校`, type: 'text', visible: true }, 
                 { key: 'studentProfile', shortLabel: '学生简档', label: `${studentIcons.studentProfile} 学生简档`, type: 'textarea', visible: true },
                 { key: 'classTime', shortLabel: '上课时间', label: `🕒 上课时间`, type: 'action', visible: true },
@@ -626,17 +1013,44 @@
                 { key: 'updatedAt', shortLabel: '更新时间', label: `${studentIcons.updatedAt} 更新时间`, type: 'readonly', visible: false }, 
             ]; 
         }
+
         function getStudentDefaultData() {
+            const now = new Date();
             return {
-                projects: [{
-                    id: Date.now(), studentName: "示例学生", curriculum: "ALEVEL", discipline: "物理", subject: "力学入门",
-                    school: "XX国际高中", studentProfile: "该同学基础较好，目标G5大学。",
-                    updatedAt: new Date().toISOString(), 
-                    progressLog: [{ date: new Date().toISOString(), duration: 1.5, content: "学习了牛顿第二定律 F=ma 的应用场景。", feedback: "学生对基本概念掌握牢固，但处理复杂受力分析时略有犹豫。", homeworkAssigned: "完成练习册 P25-P28 的所有题目。", homeworkStatus: "已完成" }],
-                    classDates: [new Date().toISOString().slice(0,10)]
-                }]
+                projects: [
+                    { 
+                        id: 1725454800001, studentName: "芳一弦", curriculum: "ALEVEL", discipline: "物理", subject: "A2",
+                        school: "苏国外", studentProfile: "目标牛津物理系，需要加强电磁学部分的解题能力。",
+                        updatedAt: now.toISOString(), classTime: [ { day: 6, start: "13:00", end: "15:00" } ],
+                        progressLog: [], classDates: [], startDate: "2025-09-01"
+                    },
+                    { 
+                        id: 1725454800002, studentName: "王皓轩", curriculum: "ALEVEL", discipline: "数学", subject: "AS",
+                        school: "昆城外", studentProfile: "基础较好，但计算容易粗心，需要针对性训练。",
+                        updatedAt: now.toISOString(), classTime: [ { day: 3, start: "18:30", end: "20:30" } ],
+                        progressLog: [], classDates: [], startDate: "2025-09-01"
+                    },
+                    { 
+                        id: 1725454800003, studentName: "张景涵,周睿杰", curriculum: "ALEVEL", discipline: "物理", subject: "AS",
+                        school: "德威", studentProfile: "二人进度同步，主攻力学和波。张同学概念理解快，周同学解题思路更灵活。",
+                        updatedAt: now.toISOString(), classTime: [ { day: 4, start: "18:30", end: "20:30" } ],
+                        progressLog: [], classDates: [], startDate: "2025-09-01", endDate: "2025-12-31"
+                    },
+                    { 
+                        id: 1725454800004, studentName: "刘梓萱", curriculum: "AP", discipline: "数学", subject: "第二年",
+                        school: "领科", studentProfile: "AP微积分BC，目标5分。当前进度：参数方程与极坐标。",
+                        updatedAt: now.toISOString(), classTime: [ { day: 0, start: "13:30", end: "15:30" } ],
+                        progressLog: [], classDates: [], startDate: "2025-09-01"
+                    }
+                ],
+                specialDates: {
+                    "2025-10-01": "holiday",
+                    "2025-10-02": "holiday",
+                    "2025-10-03": "holiday"
+                }
             };
         }
+
         function getStudentDefaultWidths() { 
             return { 
                 studentName: '130px',
@@ -704,98 +1118,193 @@
             });
             headerRow.innerHTML += '<div class="header-cell" data-key="actions" style="justify-content:center;">操作</div>';
             boardContainer.appendChild(headerRow);
+
             initColumnDragAndDrop(headerRow);
             data.projects.forEach((project, index) => { 
                 const projectRow = createProjectRow(project, gridColumns, index + 1);
                 boardContainer.appendChild(projectRow);
             });
+            // --- 重构代码开始：实现长按“序号”单元格进行拖拽排序 ---
+            let draggedItem = null;
+            let longPressTimer = null;
+
+            boardContainer.querySelectorAll('.seq-cell').forEach(cell => {
+                const row = cell.closest('.project-row');
+                if (!row) return;
+
+                const clearLongPress = () => {
+                    clearTimeout(longPressTimer);
+                    row.draggable = false;
+                };
+
+                // 监听鼠标按下事件，准备启动长按计时器
+                cell.addEventListener('mousedown', (e) => {
+                    // 只响应左键
+                    if (e.button !== 0) return;
+                    longPressTimer = setTimeout(() => {
+                        row.draggable = true; // 长按成功，使行可拖拽
+                    }, 300); // 长按300毫秒后触发
+                });
+                
+                cell.addEventListener('mouseup', clearLongPress);
+                cell.addEventListener('mouseleave', clearLongPress);
+                // 如果在cell上开始拖拽（说明长按成功），也清除计时器
+                cell.addEventListener('dragstart', () => clearTimeout(longPressTimer));
+            });
+
+            boardContainer.querySelectorAll('.project-row').forEach(row => {
+                row.addEventListener('dragstart', () => {
+                    draggedItem = row;
+                    setTimeout(() => row.classList.add('dragging'), 0);
+                });
+
+                row.addEventListener('dragend', () => {
+                    if (draggedItem) {
+                        draggedItem.classList.remove('dragging');
+                        draggedItem.draggable = false;
+                    }
+                    draggedItem = null;
+                    clearTimeout(longPressTimer);
+                    boardContainer.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+                });
+
+                row.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (row !== draggedItem) {
+                        boardContainer.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+                        row.classList.add('drag-over');
+                    }
+                });
+            });
+            
+            const dropHandler = (e) => {
+                e.preventDefault();
+                boardContainer.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+                const targetRow = e.target.closest('.project-row');
+
+                if (draggedItem && targetRow && draggedItem !== targetRow) {
+                    const draggedId = draggedItem.dataset.projectId;
+                    const targetId = targetRow.dataset.projectId;
+                    const draggedIndex = data.projects.findIndex(p => p.id == draggedId);
+                    const targetIndex = data.projects.findIndex(p => p.id == targetId);
+
+                    if (draggedIndex > -1 && targetIndex > -1) {
+                        const [removed] = data.projects.splice(draggedIndex, 1);
+                        data.projects.splice(targetIndex, 0, removed);
+                        saveData();
+                        renderBoard();
+                    }
+                }
+            };
+            
+            // 移除旧的 drop 监听器（如果有），再添加新的，防止重复绑定
+            boardContainer.removeEventListener('drop', dropHandler);
+            boardContainer.addEventListener('drop', dropHandler);
+            // --- 重构代码结束 ---
+
         }
 
         function createProjectRow(project, gridColumns, rowNumber) {
             const projectRow = document.createElement('div');
             projectRow.className = 'project-row';
+            // 新增：如果是在教育看板，则根据学生ID应用左边框颜色
+            if (currentView === 'student') {
+                const colors = getClassColor(project.discipline, project.subject);
+                // 使用边框色，并增加透明度，使其更柔和
+                projectRow.style.borderLeft = `5px solid ${colors.border.replace('hsl', 'hsla').replace(')', ', 0.7)')}`;
+            }
+    
             projectRow.dataset.projectId = project.id;
             projectRow.style.gridTemplateColumns = gridColumns;
-            const sequenceCell = document.createElement('div');
-            sequenceCell.className = 'cell drag-handle-cell';
-            sequenceCell.style.textAlign = 'center';
-            sequenceCell.textContent = rowNumber;
-            projectRow.appendChild(sequenceCell);
-            const visibleColumnConfig = columnConfig.filter(c => c.visible);
-            const studentColsToCenter = ['studentName', 'curriculum', 'discipline', 'subject', 'school', 'progress', 'classSchedule']; // 新增 'subject'
-            visibleColumnConfig.forEach(col => {
+
+            // 修正：合并序号单元格的创建，并添加正确的class和title
+            projectRow.innerHTML += `<div class="cell seq-cell" style="text-align:center;" title="按住拖拽可排序">${rowNumber}</div>`;
+            
+            const studentColsToCenter = ['studentName', 'curriculum', 'discipline', 'subject', 'school', 'progress', 'classSchedule', 'classTime'];
+            columnConfig.filter(c => c.visible).forEach(col => {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.dataset.key = col.key;
-                let value = project[col.key] || '';
-                const nameKey = currentView === 'work' ? 'name' : 'studentName';
                 if (currentView === 'student' && studentColsToCenter.includes(col.key)) {
                     cell.style.textAlign = 'center';
                 }
-                if (['updatedAt', 'startDate', 'enrollmentDate'].includes(col.key)) {
-                    value = formatDisplayDate(value); 
-                }
-                if (col.type === 'select') {
-                    cell.innerHTML = `<span class="pill" data-value="${value}">${value}</span>`;
-                } else if (col.key === nameKey) {
-                    cell.innerHTML = `<span class="cell-name-span">${value}</span>`;
 
-                } else if (col.key === 'classTime') {
-                    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                    if (project.classTime && project.classTime.day != null) {
-                        const dayName = dayNames[project.classTime.day] || '';
-                        const startTime = project.classTime.start || '';
-                        const endTime = project.classTime.end || '';
-                        // 确保在时间不完整的情况下也能优雅显示
-                        cell.textContent = `${dayName} ${startTime && endTime ? `${startTime}-${endTime}` : (startTime || endTime)}`;
-                    } else {
-                        cell.textContent = '';
-                    }
+                let value = project[col.key] || '';
+                let displayHTML = '';
 
-                } else if (col.key === 'progress' || col.key === 'classSchedule') {
-                    const emoji = col.key === 'progress' ? '💬' : '🗓️';
-                    const title = col.key === 'progress' ? '查看/编辑教学进度' : '查看/编辑上课日历';
-                    cell.innerHTML = `<span class="action-btn" title="${title}">${emoji}</span>`;
+                switch (col.key) {
+                    case 'studentName': case 'name':
+                        // 修正：确保换行逻辑正确应用
+                        const namesHTML = String(value).replace(/,|，/g, '<br>');
+                        displayHTML = `<span class="cell-name-span">${namesHTML}</span>`;
+                        break;
+                    case 'updatedAt': case 'startDate':
+                        displayHTML = formatDisplayDate(value);
+                        break;
+                    case 'classTime':
+                        if (Array.isArray(project.classTime) && project.classTime.length > 0) {
+                            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                            const timeStrings = project.classTime.map(time => {
+                                if (time && time.day != null) {
+                                    const dayName = dayNames[time.day] || '';
+                                    return `${dayName} ${time.start || ''}-${time.end || ''}`;
+                                }
+                                return '';
+                            }).filter(Boolean);
+                            displayHTML = `<div style="display: flex; flex-direction: column; justify-content: center; line-height: 1.4; font-size: 13px; white-space: normal;">${timeStrings.join('<br>')}</div>`;
+                        } else {
+                            displayHTML = '未设置';
+                        }
+                        break;
+                    case 'progress': case 'classSchedule':
+                        const emoji = col.key === 'progress' ? '💬' : '🗓️';
+                        const title = col.key === 'progress' ? '查看/编辑教学进度' : '查看/编辑上课日历';
+                        displayHTML = `<span class="action-btn" title="${title}">${emoji}</span>`;
+                        break;
+                    default:
+                        if (col.type === 'select') {
+                            displayHTML = `<span class="pill" data-value="${value}">${value}</span>`;
+                        } else {
+                            displayHTML = value;
+                        }
                 }
-                else {
-                    cell.textContent = value;
-                }
-                cell.title = project[col.key] || '';
+                cell.innerHTML = displayHTML;
+                cell.title = typeof value === 'string' ? value : '';
                 projectRow.appendChild(cell);
             });
+
             const actionCell = document.createElement('div');
             actionCell.className = 'cell action-cell';
             actionCell.style.textAlign = 'center';
-            const editBtn = document.createElement('button');
-            editBtn.className = 'edit-btn action-btn';
-            editBtn.innerHTML = '•••';
-            editBtn.title = `编辑${currentView === 'work' ? '项目' : '学生'}信息`;
-            editBtn.style.background = 'none';
-            editBtn.style.border = 'none';
-            actionCell.appendChild(editBtn);
+            actionCell.innerHTML = `<button class="edit-btn action-btn" title="编辑${currentView === 'work' ? '项目' : '学生'}信息" style="background:none; border:none;">•••</button>`;
             projectRow.appendChild(actionCell);
-            editBtn.addEventListener('click', e => { e.stopPropagation(); openProjectModal(project.id); });
-            const progressBtn = projectRow.querySelector('[title*="教学进度"]');
-            if(progressBtn) {
-                progressBtn.addEventListener('click', e => { e.stopPropagation(); openProgressModal(project.id); });
-            }
-            const calendarBtn = projectRow.querySelector('[title*="上课日历"]');
-            if(calendarBtn) {
-                calendarBtn.addEventListener('click', e => { e.stopPropagation(); openCalendarModal(project.id); });
-            }
+
+            projectRow.querySelector('.edit-btn').addEventListener('click', e => { e.stopPropagation(); openProjectModal(project.id); });
+
             projectRow.querySelectorAll('.cell[data-key]').forEach(cell => {
                 const key = cell.dataset.key;
                 const config = columnConfig.find(c => c.key === key);
-                if (config && !config.readonly && config.type !== 'action') {
+
+                if (key === 'progress' || key === 'classSchedule') {
+                    const btn = cell.querySelector('.action-btn');
+                    if (btn) {
+                        const modalFn = key === 'progress' ? openProgressModal : openCalendarModal;
+                        btn.addEventListener('click', e => { e.stopPropagation(); modalFn(project.id); });
+                    }
+                } else if (config && !config.readonly && config.type !== 'action') {
                     cell.addEventListener('click', () => createInPlaceEditor(cell, project, key));
                 }
             });
+
             return projectRow;
         }
 
         function openProjectModal(projectId = null) {
             const formFields = document.getElementById('project-form-fields');
             formFields.innerHTML = '';
+            const project = projectId ? data.projects.find(p => p.id == projectId) : {};
+
+            // Part 1: 渲染基础信息字段
             const editableColumns = columnConfig.filter(c => c.type !== 'readonly' && c.type !== 'action' && c.key !== 'classTime');
             editableColumns.forEach(col => {
                 const label = document.createElement('label');
@@ -805,61 +1314,97 @@
                     input = document.createElement('select');
                     col.options.forEach(opt => { input.innerHTML += `<option value="${opt}">${opt}</option>`; });
                 } else if (col.type === 'textarea') {
-                    input = document.createElement('textarea');
-                    input.rows = 4;
+                    input = document.createElement('textarea'); input.rows = 3;
                 } else {
-                    input = document.createElement('input');
-                    input.type = col.type;
+                    input = document.createElement('input'); input.type = col.type;
                 }
                 input.id = `form-${col.key}`;
+                input.value = project[col.key] || '';
                 formFields.appendChild(label);
                 formFields.appendChild(input);
             });
-            // --- 从这里开始插入 ---
+
+            // --- 重构代码开始：将开始和结束日期放在同一行 ---
+            if (currentView === 'student') {
+                const dateRangeLabel = document.createElement('label');
+                dateRangeLabel.textContent = '课程持续时间:';
+                formFields.appendChild(dateRangeLabel);
+
+                const dateRangeWrapper = document.createElement('div');
+                dateRangeWrapper.style.display = 'flex';
+                dateRangeWrapper.style.alignItems = 'center';
+                dateRangeWrapper.style.gap = '10px';
+
+                const startDateInput = document.createElement('input');
+                startDateInput.type = 'date';
+                startDateInput.id = 'form-startDate';
+                if (project.startDate) {
+                    startDateInput.value = project.startDate;
+                }
+
+                const separator = document.createElement('span');
+                separator.textContent = '—';
+
+                const endDateInput = document.createElement('input');
+                endDateInput.type = 'date';
+                endDateInput.id = 'form-endDate';
+                if (project.endDate) {
+                    endDateInput.value = project.endDate;
+                }
+
+                dateRangeWrapper.appendChild(startDateInput);
+                dateRangeWrapper.appendChild(separator);
+                dateRangeWrapper.appendChild(endDateInput);
+                formFields.appendChild(dateRangeWrapper);
+            }
+            // --- 重构代码结束 ---
+
+            // Part 2: 渲染两个上课时间输入框
             if (currentView === 'student') {
                 const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-                formFields.innerHTML += `
-                    <label>上课时间:</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                        <select id="form-classTime-day">
-                            <option value="">选择星期</option>
+                for (let i = 1; i <= 2; i++) {
+                    const label = document.createElement('label');
+                    label.textContent = `上课时间 ${i}:`;
+                    formFields.appendChild(label);
+
+                    // 创建一个简单的 grid 容器
+                    const inputsWrapper = document.createElement('div');
+                    inputsWrapper.style.display = 'grid';
+                    inputsWrapper.style.gridTemplateColumns = '1.2fr 1fr 1fr';
+                    inputsWrapper.style.gap = '10px';
+                    inputsWrapper.style.alignItems = 'center';
+                    
+                    inputsWrapper.innerHTML = `
+                        <select id="form-classTime-day-${i}">
+                            <option value="">无</option>
                             ${dayNames.map((day, index) => `<option value="${index}">${day}</option>`).join('')}
                         </select>
-                        <input type="time" id="form-classTime-start">
-                        <input type="time" id="form-classTime-end">
-                    </div>
-                `;
-            }
-                    // --- 从这里开始插入 ---
-                    if (currentView === 'student' && project.classTime) {
-                        document.getElementById('form-classTime-day').value = project.classTime.day;
-                        document.getElementById('form-classTime-start').value = project.classTime.start;
-                        document.getElementById('form-classTime-end').value = project.classTime.end;
-                    }
-                    // --- 插入结束 ---
+                        <input type="time" id="form-classTime-start-${i}">
+                        <input type="time" id="form-classTime-end-${i}">
+                    `;
+                    formFields.appendChild(inputsWrapper);
+                }
 
-            
-            const deleteBtn = document.getElementById('delete-btn');
-            deleteBtn.style.display = 'none';
-            const form = document.getElementById('project-form');
-            form.reset();
-            if (projectId) {
-                const project = data.projects.find(p => p.id == projectId);
-                document.getElementById('modal-title').textContent = `编辑${currentView === 'work' ? '项目' : '学生'}信息`;
-                document.getElementById('project-id').value = projectId;
-                editableColumns.forEach(col => { document.getElementById(`form-${col.key}`).value = project[col.key] || ''; });
-                    // --- 从这里开始插入 ---
-                    if (currentView === 'student' && project.classTime) {
-                        document.getElementById('form-classTime-day').value = project.classTime.day;
-                        document.getElementById('form-classTime-start').value = project.classTime.start;
-                        document.getElementById('form-classTime-end').value = project.classTime.end;
+                // Part 3: 用已保存的数据填充时间输入框
+                if (Array.isArray(project.classTime)) {
+                    const time1 = project.classTime[0];
+                    if (time1) {
+                        document.getElementById('form-classTime-day-1').value = time1.day;
+                        document.getElementById('form-classTime-start-1').value = time1.start;
+                        document.getElementById('form-classTime-end-1').value = time1.end;
                     }
-                    // --- 插入结束 ---
-                deleteBtn.style.display = 'inline-block';
-            } else {
-                document.getElementById('modal-title').textContent = `新增${currentView === 'work' ? '项目' : '学生'}`;
-                document.getElementById('project-id').value = '';
+                    const time2 = project.classTime[1];
+                    if (time2) {
+                        document.getElementById('form-classTime-day-2').value = time2.day;
+                        document.getElementById('form-classTime-start-2').value = time2.start;
+                        document.getElementById('form-classTime-end-2').value = time2.end;
+                    }
+                }
             }
+
+            document.getElementById('modal-title').textContent = `${projectId ? '编辑' : '新增'}${currentView === 'work' ? '项目' : '学生'}信息`;
+            document.getElementById('project-id').value = projectId || '';
+            document.getElementById('delete-btn').style.display = projectId ? 'inline-block' : 'none';
             projectModal.style.display = 'flex';
         }
 
@@ -1021,6 +1566,147 @@
             editor.focus();
         }
         
+        // 最终版颜色系统 v3.0：基于“学科 x 年级”
+        const SUBJECT_THEMES = {
+            '物理': {
+                light: { background: '#fdedec', border: '#f5b7b1', text: '#c0392b' }, // 淡色 (AS等)
+                deep:  { background: '#f5b7b1', border: '#e74c3c', text: '#943126' }  // 深色 (A2)
+            },
+            '数学': {
+                light: { background: '#eaf2f8', border: '#a9cce3', text: '#2980b9' }, // 淡色 (AS等)
+                deep:  { background: '#aed6f1', border: '#3498db', text: '#1f618d' }  // 深色 (A2)
+            },
+            '默认': {
+                light: { background: '#f2f4f4', border: '#d5dbdb', text: '#7f8c8d' },
+                deep:  { background: '#e5e7e9', border: '#b2babb', text: '#616a6b' }
+            }
+        };
+
+        function getClassColor(discipline, grade = '') {
+            const theme = SUBJECT_THEMES[discipline] || SUBJECT_THEMES['默认'];
+            const gradeStr = String(grade).toUpperCase();
+
+            // 定义一个包含所有“深色”年级关键词的数组
+            const deepColorKeywords = ['A2', '第二年'];
+
+            // 检查年级字符串是否包含任何一个深色关键词
+            if (deepColorKeywords.some(keyword => gradeStr.includes(keyword))) {
+                return theme.deep;
+            }
+            return theme.light; // 其他所有情况 (AS, 第一年, IGCSE等) 都使用淡色
+        }
+
+        // =============================================
+        // =========== 新增: 教师月历生成函数 v3.0 ========
+        // =============================================
+
+        function renderMonthlySchedule() {
+            const container = document.getElementById('schedule-grid-container');
+            const title = document.getElementById('schedule-modal-title');
+            container.innerHTML = '';
+            const year = currentScheduleDate.getFullYear();
+            const month = currentScheduleDate.getMonth();
+            title.textContent = `${year} 年 ${month + 1} 月`;
+            
+            let totalClasses = 0;
+            const monthScheduleData = {};
+
+            // 1. 数据处理：收集课程时，额外加入 discipline 和 subject(grade)
+            data.projects.forEach(student => {
+                if (Array.isArray(student.classTime)) {
+                    student.classTime.forEach(time => {
+                        if (time.day == null || !time.start) return;
+                        for (let i = 1; i <= 31; i++) {
+                            const date = new Date(year, month, i);
+                            if (date.getMonth() !== month) break;
+                            if (date.getDay() === parseInt(time.day, 10)) {
+                                let isValid = true;
+                                const checkDate = new Date(date); checkDate.setHours(0, 0, 0, 0);
+                                if (student.startDate && new Date(student.startDate) > checkDate) isValid = false;
+                                if (student.endDate && new Date(student.endDate) < checkDate) isValid = false;
+                                if (isValid) {
+                                    const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                                    if (!monthScheduleData[dateKey]) monthScheduleData[dateKey] = [];
+                                    monthScheduleData[dateKey].push({ 
+                                        studentId: student.id, 
+                                        studentName: student.studentName, 
+                                        start: time.start, 
+                                        end: time.end, 
+                                        discipline: student.discipline, 
+                                        grade: student.subject // 将 subject 作为 grade 传递
+                                    });
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+
+            // 2. 渲染UI
+            const grid = document.createElement('div');
+            grid.className = 'monthly-schedule-grid';
+            const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            dayNames.forEach(day => grid.innerHTML += `<div class="day-header">${day}</div>`);
+            const firstDayOfMonth = new Date(year, month, 1);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const dayOffset = (firstDayOfMonth.getDay() + 6) % 7;
+
+            for (let i = 0; i < dayOffset; i++) { grid.innerHTML += `<div class="day-cell not-current-month"><div class="day-number">${new Date(year, month, 0).getDate() - dayOffset + i + 1}</div></div>`; }
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                
+                // 2.1 收集并整合当天所有课程
+                const dailyClassMap = new Map();
+                (monthScheduleData[dateKey] || []).forEach(c => {
+                    const eventKey = `${dateKey}_${c.start}`;
+                    dailyClassMap.set(eventKey, { ...c, isOverride: false, originalStart: c.start });
+                });
+                data.projects.forEach(student => {
+                    if (Array.isArray(student.overriddenClasses)) {
+                        student.overriddenClasses.forEach(override => {
+                            if (override.key.slice(0, 10) === dateKey) {
+                                dailyClassMap.set(override.key, {
+                                    studentId: student.id, studentName: student.studentName,
+                                    start: override.newStart, end: override.newEnd,
+                                    discipline: student.discipline, grade: student.subject, // 确保 override 课程也有学科和年级
+                                    isOverride: true, originalStart: override.key.split('_')[1]
+                                });
+                            }
+                        });
+                    }
+                });
+
+                // 2.2 过滤、排序、渲染
+                let finalClasses = Array.from(dailyClassMap.values()).filter(c => {
+                    const student = data.projects.find(p => p.id === c.studentId);
+                    const eventKey = `${dateKey}_${c.isOverride ? c.originalStart : c.start}`;
+                    return !(student && student.inactiveClasses && student.inactiveClasses.includes(eventKey));
+                });
+                finalClasses.sort((a, b) => a.start.localeCompare(b.start));
+                
+                const specialStatus = data.specialDates[dateKey];
+                let dayCellClass = 'day-cell';
+                if (specialStatus === 'holiday') dayCellClass += ' holiday';
+                if (specialStatus === 'workday') dayCellClass += ' special-workday';
+                let cellHTML = `<div class="${dayCellClass}" data-date="${dateKey}"><div class="day-number">${i}</div><div class="class-entries-container">`;
+
+                finalClasses.forEach(c => {
+                    totalClasses++;
+                    const colors = getClassColor(c.discipline, c.grade); // 核心改动
+                    const styleAttribute = `style="background-color: ${colors.background}; border-left-color: ${colors.border}; color: ${colors.text};"`;
+                    cellHTML += `<div class="class-entry" ${styleAttribute} data-student-id="${c.studentId}" data-date-key="${dateKey}" data-start-time="${c.isOverride ? c.originalStart : c.start}" title="${c.start}-${c.end} ${c.studentName}"><div class="drag-handle"></div><span class="class-entry-time">${c.start} - ${c.end}</span><span>${c.studentName}</span></div>`;
+                });
+                cellHTML += `</div></div>`;
+                grid.innerHTML += cellHTML;
+            }
+
+            for (let i = 1; i <= (7 - (dayOffset + daysInMonth) % 7) % 7; i++) { grid.innerHTML += `<div class="day-cell not-current-month"><div class="day-number">${i}</div></div>`; }
+            
+            container.appendChild(grid);
+            document.getElementById('schedule-class-count').textContent = totalClasses;
+        }
+
         function initColumnDragAndDrop(headerRow) {
             const headers = Array.from(headerRow.querySelectorAll('.header-cell[draggable="true"]'));
             let draggedItem = null;
@@ -1111,55 +1797,63 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('nav-work').addEventListener('click', () => initializeBoard('work'));
             document.getElementById('nav-student').addEventListener('click', () => initializeBoard('student'));
-             
-            [projectModal, configModal, progressModal, calendarModal].forEach(modal => {
+            document.getElementById('instructions-btn').addEventListener('click', () => {
+                document.getElementById('instructions-modal').style.display = 'flex';
+            });
+
+            [projectModal, configModal, progressModal, calendarModal,scheduleModal, instructionsModal ].forEach(modal => {
                 modal.addEventListener('click', e => { if (e.target === modal && !isEditing) modal.style.display = 'none'; });
             });
             document.getElementById('add-btn').addEventListener('click', () => openProjectModal(null));
 
             document.getElementById('project-form').addEventListener('submit', e => {
-                e.preventDefault();
-                const projectId = document.getElementById('project-id').value;
-                const projectData = {};
-                // 同样在这里过滤掉 classTime，因为它需要特殊处理
-                columnConfig.filter(c => c.type !== 'readonly' && c.type !== 'action' && c.key !== 'classTime').forEach(col => {
-                    const input = document.getElementById(`form-${col.key}`);
-                    if(input) projectData[col.key] = input.value;
-                });
-
-                // --- 从这里开始插入保存“上课时间”的逻辑 ---
+                e.preventDefault();
+                const projectId = document.getElementById('project-id').value;
+                const projectData = {};
+                columnConfig.filter(c => c.type !== 'readonly' && c.type !== 'action' && c.key !== 'classTime').forEach(col => {
+                    const input = document.getElementById(`form-${col.key}`);
+                    if (input) projectData[col.key] = input.value;
+                });
+                // --- 新增代码开始：保存开始和结束日期 ---
                 if (currentView === 'student') {
-                    const day = document.getElementById('form-classTime-day').value;
-                    const start = document.getElementById('form-classTime-start').value;
-                    const end = document.getElementById('form-classTime-end').value;
-
-                    if (day !== "") { // 只有在选择了星期时才保存
-                        projectData.classTime = {
-                            day: parseInt(day, 10), // 将星期的值转换为数字
-                            start: start,
-                            end: end
-                        };
-                    } else {
-                        projectData.classTime = null; // 如果未选择，则存为 null
-                    }
+                    projectData.startDate = document.getElementById('form-startDate').value || null;
+                    projectData.endDate = document.getElementById('form-endDate').value || null;
                 }
-                // --- 插入结束 ---
+                // --- 新增代码结束 ---
 
-                projectData.updatedAt = new Date().toISOString();
-                if (projectId) {
-                    const pIndex = data.projects.findIndex(p => p.id == projectId);
-                    data.projects[pIndex] = { ...data.projects[pIndex], ...projectData };
-                } else {
-                    projectData.id = Date.now();
-                    if(currentView === 'student'){
-                       projectData.classDates = [];
-                    }
-                    data.projects.unshift(projectData);
-                }
-                saveData();
-                renderBoard();
-                projectModal.style.display = 'none';
-            });
+                if (currentView === 'student') {
+                    const newClassTimes = [];
+                    for(let i = 1; i <= 2; i++) {
+                        const day = document.getElementById(`form-classTime-day-${i}`).value;
+                        if (day !== "") {
+                            newClassTimes.push({
+                                day: parseInt(day, 10),
+                                start: document.getElementById(`form-classTime-start-${i}`).value,
+                                end: document.getElementById(`form-classTime-end-${i}`).value
+                            });
+                        }
+                    }
+                    projectData.classTime = newClassTimes;
+                }
+
+                projectData.updatedAt = new Date().toISOString();
+                if (projectId) {
+                    const pIndex = data.projects.findIndex(p => p.id == projectId);
+                    if (pIndex > -1) data.projects[pIndex] = { ...data.projects[pIndex], ...projectData };
+                } else {
+                    projectData.id = Date.now();
+                    if (currentView === 'student') {
+                        projectData.classDates = [];
+                        if (!projectData.classTime || projectData.classTime.length === 0) {
+                            projectData.classTime = [{ day: 1, start: '13:00', end: '15:00' }];
+                        }
+                    }
+                    data.projects.unshift(projectData);
+                }
+                saveData();
+                renderBoard();
+                projectModal.style.display = 'none';
+            });
 
             document.getElementById('delete-btn').addEventListener('click', () => {
                 const projectId = document.getElementById('project-id').value;
@@ -1289,7 +1983,242 @@
                 calendarModal.classList.toggle('calendar-editing');
                 e.currentTarget.classList.toggle('active');
             });
+
+            // 月历弹窗事件
+            document.getElementById('weekly-schedule-btn').addEventListener('click', () => {
+                if (currentView === 'student') {
+                    currentScheduleDate = new Date(); // 每次打开都重置到当前月份
+                    renderMonthlySchedule();
+                    scheduleModal.style.display = 'flex';
+                }
+            });
+
+            document.getElementById('schedule-prev-month-btn').addEventListener('click', () => {
+                currentScheduleDate.setMonth(currentScheduleDate.getMonth() - 1);
+                renderMonthlySchedule();
+            });
+
+            document.getElementById('schedule-next-month-btn').addEventListener('click', () => {
+                currentScheduleDate.setMonth(currentScheduleDate.getMonth() + 1);
+                renderMonthlySchedule();
+            });
+
+            // --- 最终版代码 v6.1 (Stable Refactor) 开始 ---
+            let activeTimeEditor = null;
+            let actionHistory = [];
             
+            function showToast(message, onUndo) {
+                const container = document.getElementById('toast-container');
+                container.innerHTML = '';
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `<span>${message}</span>`;
+                if (onUndo) {
+                    const undoBtn = document.createElement('button');
+                    undoBtn.className = 'toast-undo-btn';
+                    undoBtn.textContent = '撤销';
+                    undoBtn.onclick = () => { onUndo(); toast.remove(); };
+                    toast.appendChild(undoBtn);
+                }
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 5000);
+            }
+
+            function undoLastAction() {
+                if (actionHistory.length === 0) return;
+                const lastAction = actionHistory.pop();
+                const student = data.projects.find(p => p.id == lastAction.studentId);
+                if (!student || !student.inactiveClasses) return;
+                const keyIndex = student.inactiveClasses.indexOf(lastAction.eventKey);
+                if (keyIndex > -1) {
+                    student.inactiveClasses.splice(keyIndex, 1);
+                    saveData();
+                    renderMonthlySchedule();
+                }
+            }
+
+            function removeTimeEditor(shouldSaveChanges = false) {
+                if (!activeTimeEditor) return;
+                if (shouldSaveChanges) {
+                    const { studentId, eventKey } = activeTimeEditor.dataset;
+                    const student = data.projects.find(p => p.id == studentId);
+                    if (student) {
+                        const newStart = activeTimeEditor.querySelectorAll('input')[0].value;
+                        const newEnd = activeTimeEditor.querySelectorAll('input')[1].value;
+                        if (!Array.isArray(student.overriddenClasses)) student.overriddenClasses = [];
+                        const existingOverrideIndex = student.overriddenClasses.findIndex(o => o.key === eventKey);
+                        if (existingOverrideIndex > -1) student.overriddenClasses.splice(existingOverrideIndex, 1);
+                        const originalStartTime = eventKey.split('_')[1];
+                        const originalClass = student.classTime.find(ct => ct.start === originalStartTime);
+                        if (!originalClass || newStart !== originalClass.start || newEnd !== originalClass.end) {
+                           student.overriddenClasses.push({ key: eventKey, newStart, newEnd });
+                        }
+                        saveData();
+                        renderMonthlySchedule();
+                    }
+                }
+                document.removeEventListener('mousedown', handleOutsideClick, true);
+                activeTimeEditor.remove();
+                activeTimeEditor = null;
+            }
+
+            function handleOutsideClick(e) {
+                if (activeTimeEditor && !activeTimeEditor.contains(e.target)) {
+                    removeTimeEditor(true);
+                }
+            }
+            
+            const gridContainer = document.getElementById('schedule-grid-container');
+
+            // 1. 【恢复】手动标记假日/工作日功能
+            document.getElementById('mark-dates-btn').addEventListener('click', (e) => {
+                const grid = gridContainer.querySelector('.monthly-schedule-grid');
+                if (!grid) return;
+                grid.classList.toggle('marking-mode');
+                e.currentTarget.classList.toggle('active');
+            });
+
+            gridContainer.addEventListener('click', (e) => {
+                const dayCell = e.target.closest('.day-cell');
+                const grid = dayCell?.parentElement;
+                if (!grid || !grid.classList.contains('marking-mode') || e.target.closest('.class-entry')) {
+                    return;
+                }
+                const dateKey = dayCell.dataset.date;
+                if (!dateKey || dayCell.classList.contains('not-current-month')) return;
+                const currentStatus = data.specialDates[dateKey];
+                if (!currentStatus) { data.specialDates[dateKey] = 'holiday'; } 
+                else if (currentStatus === 'holiday') { data.specialDates[dateKey] = 'workday'; } 
+                else if (currentStatus === 'workday') { delete data.specialDates[dateKey]; }
+                saveData();
+                renderMonthlySchedule();
+            });
+
+            //2. 月表中课程条目mousedown统一处理器
+            gridContainer.addEventListener('mousedown', (e) => {
+                const classEntry = e.target.closest('.class-entry');
+                if (!classEntry) {
+                    if (activeTimeEditor) removeTimeEditor(true);
+                    return;
+                }
+                
+                if (e.target.classList.contains('drag-handle')) {
+                    if (e.button === 0) { classEntry.draggable = true; }
+                    return;
+                }
+
+                const { studentId, dateKey, startTime } = classEntry.dataset;
+                const student = data.projects.find(p => p.id == studentId);
+                if (!student) return;
+                const eventKey = `${dateKey}_${startTime}`;
+
+                if (e.button === 0) { // 左键: 编辑时间
+                    if (activeTimeEditor) { removeTimeEditor(true); return; }
+                    const currentTimeText = classEntry.querySelector('.class-entry-time').textContent;
+                    const [currentStart, currentEnd] = currentTimeText.split(' - ');
+                    const editor = document.createElement('div');
+                    editor.className = 'time-editor';
+                    editor.innerHTML = `<input type="time" value="${currentStart}"><span>-</span><input type="time" value="${currentEnd}">`;
+                    editor.querySelectorAll('input[type="time"]').forEach(input => {
+                        input.addEventListener('wheel', wheelEvent => {
+                            wheelEvent.preventDefault();
+                            const time = input.value.split(':');
+                            let h = parseInt(time[0]), m = parseInt(time[1]);
+                            if (wheelEvent.deltaY < 0) m += 15; else m -= 15;
+                            if (m >= 60) { h += Math.floor(m / 60); m %= 60; } 
+                            else if (m < 0) { h += Math.floor(m / 60); m = 60 + (m % 60); }
+                            h = (h + 24) % 24;
+                            input.value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                        });
+                    });
+                    document.body.appendChild(editor);
+                    const rect = classEntry.getBoundingClientRect();
+                    editor.style.top = `${window.scrollY + rect.top}px`;
+                    editor.style.left = `${window.scrollX + rect.left}px`;
+                    activeTimeEditor = editor;
+                    activeTimeEditor.dataset.studentId = studentId;
+                    activeTimeEditor.dataset.eventKey = eventKey;
+                    const firstInput = editor.querySelector('input');
+                    firstInput.focus();
+                    editor.addEventListener('keydown', (keyEvent) => {
+                        if (keyEvent.key === 'Enter') { keyEvent.preventDefault(); removeTimeEditor(true); } 
+                        else if (keyEvent.key === 'Escape') { keyEvent.preventDefault(); removeTimeEditor(false); }
+                    });
+                    setTimeout(() => document.addEventListener('mousedown', handleOutsideClick, true), 0);
+                }
+
+                if (e.button === 1) { // 中键: 隐藏/删除
+                    e.preventDefault();
+                    if (!Array.isArray(student.inactiveClasses)) student.inactiveClasses = [];
+                    if (student.inactiveClasses.includes(eventKey)) return;
+                    student.inactiveClasses.push(eventKey);
+                    saveData();
+                    renderMonthlySchedule();
+                    actionHistory.push({ type: 'inactivate', studentId, eventKey });
+                    showToast('课程已隐藏', undoLastAction);
+                }
+            });
+            
+            //3. 拖拽生命周期时间
+            gridContainer.addEventListener('dragstart', (e) => {
+                const classEntry = e.target.closest('.class-entry');
+                if (!classEntry || !classEntry.draggable) { e.preventDefault(); return; }
+                setTimeout(() => classEntry.style.opacity = '0.5', 0);
+                const currentTimeText = classEntry.querySelector('.class-entry-time').textContent;
+                const [, currentEnd] = currentTimeText.split(' - ');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('application/json', JSON.stringify({ studentId: classEntry.dataset.studentId, originalDate: classEntry.dataset.dateKey, originalStart: classEntry.dataset.startTime, currentEnd: currentEnd }));
+            });
+            gridContainer.addEventListener('dragend', (e) => {
+                const classEntry = e.target.closest('.class-entry');
+                if (classEntry) {
+                    classEntry.style.opacity = '1';
+                    classEntry.draggable = false;
+                }
+                gridContainer.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            });
+            gridContainer.addEventListener('dragover', (e) => { e.preventDefault(); const dayCell = e.target.closest('.day-cell'); if (dayCell) { gridContainer.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); dayCell.classList.add('drag-over'); } });
+            gridContainer.addEventListener('dragleave', (e) => { const dayCell = e.target.closest('.day-cell'); if (dayCell) dayCell.classList.remove('drag-over'); });
+            gridContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const dayCell = e.target.closest('.day-cell');
+                if (!dayCell) return;
+                dayCell.classList.remove('drag-over');
+                try {
+                    const droppedData = JSON.parse(e.dataTransfer.getData('application/json'));
+                    const targetDate = dayCell.dataset.date;
+                    if (!droppedData || !targetDate || targetDate === droppedData.originalDate) return;
+                    const student = data.projects.find(p => p.id == droppedData.studentId);
+                    if (!student) return;
+                    const originalKey = `${droppedData.originalDate}_${droppedData.originalStart}`;
+                    const newKey = `${targetDate}_${droppedData.originalStart}`;
+                    if (!student.overriddenClasses) student.overriddenClasses = [];
+                    const movedOverrideIndex = student.overriddenClasses.findIndex(o => o.key === originalKey);
+                    if (movedOverrideIndex > -1) { student.overriddenClasses.splice(movedOverrideIndex, 1); }
+                    if (!student.inactiveClasses) student.inactiveClasses = [];
+                    const originalRecurringIndex = student.inactiveClasses.indexOf(newKey);
+                    if (originalRecurringIndex > -1) { student.inactiveClasses.splice(originalRecurringIndex, 1); }
+                    if (movedOverrideIndex === -1) {
+                         if (!student.inactiveClasses.includes(originalKey)) { student.inactiveClasses.push(originalKey); }
+                    }
+                    const existingOverrideIndex = student.overriddenClasses.findIndex(o => o.key === newKey);
+                    if (existingOverrideIndex > -1) student.overriddenClasses.splice(existingOverrideIndex, 1);
+                    student.overriddenClasses.push({ key: newKey, newStart: droppedData.originalStart, newEnd: droppedData.currentEnd });
+                    saveData();
+                    renderMonthlySchedule();
+                } catch (err) { console.error("Drop error:", err); }
+            });
+            
+            // 4. 全局键盘监听
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                    e.preventDefault();
+                    undoLastAction();
+                }
+            });
+            // --- 最终版代码 v6.1 (Stable Refactor) 结束 ---
+            
+            displayVersionAndTime(); // 初始化版本和时间显示
             initializeBoard('work');
         });
     })();
