@@ -996,17 +996,25 @@
         function loadData() {
             const dataJSON = localStorage.getItem(getStorageKey('data'));
             const defaultData = currentView === 'work' ? getWorkDefaultData() : getStudentDefaultData();
+            let loadedData = null;
+
             if (dataJSON) {
-                try { 
-                    data = JSON.parse(dataJSON); 
-                    if (!data.specialDates) data.specialDates = {}; // 确保 specialDates 存在
-                } catch (e) { 
-                    data = defaultData; 
-                    data.specialDates = {};
+                try {
+                    loadedData = JSON.parse(dataJSON);
+                } catch (e) {
+                    loadedData = null; // 如果JSON格式损坏，则视为空
                 }
-            } else { 
-                data = defaultData; 
-                data.specialDates = {};
+            }
+
+            // 核心修正：只有当加载的数据真实有效，并且包含至少一个项目时，才使用它
+            if (loadedData && loadedData.projects && loadedData.projects.length > 0) {
+                data = loadedData;
+                if (!data.specialDates) {
+                    data.specialDates = {}; // 确保 specialDates 存在
+                }
+            } else {
+                // 否则（包括localStorage为空、JSON损坏、或项目列表为空），一律加载默认数据
+                data = defaultData;
             }
         }
         function saveData() { localStorage.setItem(getStorageKey('data'), JSON.stringify(data)); }
@@ -1077,7 +1085,7 @@
                 }
             };
         }
-        
+                
         function getStudentDefaultWidths() { 
             return { 
                 studentName: '130px',
