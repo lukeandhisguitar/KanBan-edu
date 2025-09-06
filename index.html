@@ -469,10 +469,10 @@
             background-color: #f0f5f3;
         }
         .monthly-schedule-grid .day-cell.holiday {
-            background-color: #fef5e7; /* 淡黄色背景表示假日 */
+            background-color: #eafaf1; /* 新：淡绿色背景表示假日 */
         }
         .monthly-schedule-grid .day-cell.special-workday {
-            background-color: #eafaf1; /* 淡绿色背景表示特殊工作日 */
+            background-color: #e8f4fd; /* 新：淡蓝色背景表示特殊工作日 */
         }
         
 
@@ -2092,6 +2092,12 @@
             document.getElementById('weekly-schedule-btn').addEventListener('click', () => {
                 if (currentView === 'student') {
                     currentScheduleDate = new Date(); // 每次打开都重置到当前月份
+                    
+                    // 新增：确保标记按钮在每次打开时都恢复默认状态
+                    const markButton = document.getElementById('mark-dates-btn');
+                    markButton.classList.remove('active');
+                    markButton.textContent = '标记';
+
                     renderMonthlySchedule();
                     scheduleModal.style.display = 'flex';
                 }
@@ -2177,9 +2183,20 @@
             // 1. 【恢复】手动标记假日/工作日功能
             document.getElementById('mark-dates-btn').addEventListener('click', (e) => {
                 const grid = gridContainer.querySelector('.monthly-schedule-grid');
+            
                 if (!grid) return;
+                const button = e.currentTarget;
+
+                // 切换状态 class
                 grid.classList.toggle('marking-mode');
-                e.currentTarget.classList.toggle('active');
+                button.classList.toggle('active');
+                
+                // 根据当前状态更新按钮文字
+                if (button.classList.contains('active')) {
+                    button.textContent = '标记中';
+                } else {
+                    button.textContent = '标记';
+                }
             });
 
             gridContainer.addEventListener('click', (e) => {
